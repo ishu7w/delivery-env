@@ -1,0 +1,106 @@
+# Smart Last-Mile Delivery Environment
+
+name: smart_last_mile_delivery
+version: "1.0.0"
+description: >
+  Reinforcement learning environment for optimising last-mile delivery
+  logistics under fuel, deadline, traffic, and capacity constraints.
+
+entry_point: env.delivery_env:DeliveryEnv
+
+observation_space:
+  type: dict
+  properties:
+    vehicle_location:
+      type: array
+      items:
+        type: number
+      description: "(x, y) coordinates of the active vehicle"
+    fuel:
+      type: number
+      minimum: 0
+      maximum: 100
+      description: "Remaining fuel units"
+    time:
+      type: number
+      minimum: 0
+      description: "Current simulation time step"
+    max_time:
+      type: number
+      description: "Maximum allowed time steps"
+    deliveries:
+      type: array
+      items:
+        type: object
+        properties:
+          delivery_id:
+            type: integer
+          pickup_x:
+            type: number
+          pickup_y:
+            type: number
+          dropoff_x:
+            type: number
+          dropoff_y:
+            type: number
+          deadline:
+            type: number
+          priority:
+            type: number
+          status:
+            type: string
+            enum: [pending, in_transit, delivered, failed]
+          picked_up:
+            type: boolean
+          traffic_delay:
+            type: number
+          weight:
+            type: number
+      description: "List of delivery objects with locations, deadlines, status"
+    vehicles:
+      type: array
+      items:
+        type: object
+        properties:
+          vehicle_id:
+            type: integer
+          x:
+            type: number
+          y:
+            type: number
+          fuel:
+            type: number
+          speed:
+            type: number
+      description: "List of available vehicles"
+
+action_space:
+  type: dict
+  properties:
+    delivery_id:
+      type: integer
+      description: "ID of the delivery to pursue"
+    vehicle_id:
+      type: integer
+      description: "ID of the vehicle to use (default 0)"
+
+tasks:
+  - name: easy
+    module: tasks.easy
+    grader: graders.easy_grader
+    description: "1 vehicle, 3 deliveries, no traffic"
+  - name: medium
+    module: tasks.medium
+    grader: graders.medium_grader
+    description: "1 vehicle, 6 deliveries, traffic + deadlines"
+  - name: hard
+    module: tasks.hard
+    grader: graders.hard_grader
+    description: "2 vehicles, 8+ deliveries, dynamic orders, fuel pressure"
+
+api:
+  server: app:app
+  endpoints:
+    reset: GET /reset
+    step: POST /step
+    state: GET /state
